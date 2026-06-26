@@ -1580,9 +1580,9 @@ if (!dbSessionId) {
 (function() {
   const tpls=['我承诺，不再用_____来衡量别人的痛苦。','从今天起，我用"你还好吗"代替"别矫情了"。','语言可以伤人，也可以治愈——我选择后者。'];
   function gc(){try{const v=localStorage.getItem('as_mfc');return v?parseInt(v,10):0;}catch(e){return 0;}}
-  function ic(){const c=gc()+1;try{localStorage.setItem('as_mfc',c);}catch(e){}if(dbReady){supabase.from('declarations').insert({session_id:dbSessionId,template:document.getElementById('mf-template').value}).then(function(){}).catch(function(){})}return c;}
+  async function ic(){const c=gc()+1;try{localStorage.setItem('as_mfc',c);}catch(e){}if(dbReady){try{var ir=await supabase.from('declarations').insert({session_id:dbSessionId,template:document.getElementById('mf-template').value});if(ir.error){console.error('declarations insert error:',ir.error);}}catch(e){console.error('declarations insert exception:',e);}}return c;}
   (async function(){if(dbReady){try{const dc=await supabase.from('declarations').select('*',{count:'exact',head:true});if(dc.error){document.getElementById('mf-count').textContent=gc();return;}if((dc.count||0)>0){document.getElementById('mf-count').textContent=dc.count;localStorage.setItem('as_mfc',''+dc.count);return;}}catch(e){}}document.getElementById('mf-count').textContent=gc();})();
-  document.getElementById('mf-gen-btn').addEventListener('click',()=>{
+  document.getElementById('mf-gen-btn').addEventListener('click',async ()=>{
     const name=document.getElementById('mf-name').value.trim()||'匿名',ti=parseInt(document.getElementById('mf-template').value),text=tpls[ti];
     const cv=document.getElementById('manifesto-canvas'),ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
     ctx.fillStyle='#ffffff';ctx.fillRect(0,0,W,H);
@@ -1595,7 +1595,7 @@ if (!dbSessionId) {
     const now=new Date(),ds=`${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
     ctx.fillStyle='#475569';ctx.font='16px "PingFang SC","Hiragino Sans GB",-apple-system,sans-serif';ctx.textAlign='right';ctx.fillText('— '+name,W-60,bY+60);ctx.fillText(ds,W-60,bY+84);
     ctx.fillStyle='#2563eb';ctx.font='11px -apple-system,sans-serif';ctx.textAlign='center';ctx.fillText('# 屏幕内外的精神健康 #',W/2,H-38);
-    document.getElementById('mf-count').textContent=ic();document.getElementById('mf-result').classList.add('show');if(dbReady&&window.refreshGlobalStats)window.refreshGlobalStats();
+    document.getElementById('mf-count').textContent=await ic();document.getElementById('mf-result').classList.add('show');if(dbReady&&window.refreshGlobalStats)window.refreshGlobalStats();
   });
   function wrapText(ctx,text,mw){const w=text.split(''),l=[];let ln='';for(let i=0;i<w.length;i++){const t=ln+w[i];if(ctx.measureText(t).width>mw&&ln.length>0){l.push(ln);ln=w[i];}else ln=t;}l.push(ln);return l;}
 })();
