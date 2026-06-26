@@ -1,0 +1,1735 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>屏幕内外的精神健康 — PSF 青少年精神健康反污名化</title>
+<style>
+/* ============ CSS Variables ============ */
+:root {
+  --bg-body: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-hero-start: #1e40af;
+  --bg-hero-end: #3b82f6;
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --accent: #2563eb;
+  --accent-light: #dbeafe;
+  --accent-dark: #1d4ed8;
+  --orange: #f97316;
+  --orange-light: #fff7ed;
+  --green: #10b981;
+  --green-light: #ecfdf5;
+  --purple: #8b5cf6;
+  --purple-light: #f5f3ff;
+  --gold: #f59e0b;
+  --border-subtle: #e2e8f0;
+  --border-focus: #93c5fd;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+  --shadow-card: 0 4px 20px rgba(0,0,0,0.06);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.1);
+  --radius: 14px;
+  --radius-sm: 10px;
+  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --nav-height: 64px;
+  --max-width: 1200px;
+}
+
+/* ============ Reset & Base ============ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; scroll-padding-top: var(--nav-height); }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--bg-body);
+  color: var(--text-primary);
+  line-height: 1.75;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============ Canvas Background ============ */
+#particle-canvas {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 0; pointer-events: none;
+}
+
+/* ============ Navigation ============ */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; height: var(--nav-height);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 40px; z-index: 1000;
+  background: rgba(255,255,255,0.82);
+  backdrop-filter: blur(14px) saturate(1.8);
+  -webkit-backdrop-filter: blur(14px) saturate(1.8);
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background var(--transition), box-shadow var(--transition);
+}
+.nav.scrolled { background: rgba(255,255,255,0.95); box-shadow: 0 1px 8px rgba(0,0,0,0.04); }
+.nav-logo {
+  font-size: 1.05rem; font-weight: 700; color: var(--text-primary);
+  letter-spacing: 0.02em; white-space: nowrap;
+}
+.nav-links { display: flex; gap: 22px; list-style: none; }
+.nav-links a {
+  color: var(--text-secondary); text-decoration: none;
+  font-size: 0.82rem; font-weight: 500; transition: color var(--transition);
+  position: relative; padding: 6px 0;
+}
+.nav-links a::after {
+  content: ''; position: absolute; bottom: 0; left: 0; width: 0; height: 2px;
+  background: var(--accent); border-radius: 2px; transition: width var(--transition);
+}
+.nav-links a:hover, .nav-links a.active { color: var(--accent); }
+.nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+
+.hamburger {
+  display: none; background: none; border: none; cursor: pointer;
+  flex-direction: column; gap: 5px; padding: 4px; z-index: 1001;
+}
+.hamburger span {
+  display: block; width: 24px; height: 2px;
+  background: var(--text-primary); border-radius: 2px;
+  transition: var(--transition);
+}
+.hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(5px,5px); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(5px,-5px); }
+
+@media (max-width: 900px) {
+  .hamburger { display: flex; }
+  .nav-links {
+    position: fixed; top: 0; right: -100%; width: 260px; height: 100vh;
+    flex-direction: column; gap: 0; padding: 90px 30px 30px;
+    background: rgba(255,255,255,0.97); backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    transition: right var(--transition); box-shadow: -4px 0 24px rgba(0,0,0,0.08);
+  }
+  .nav-links.open { right: 0; }
+  .nav-links a { font-size: 1rem; padding: 14px 0; border-bottom: 1px solid var(--border-subtle); }
+}
+
+/* ============ Section Common ============ */
+.section {
+  position: relative; z-index: 1; padding: 100px 40px;
+  max-width: var(--max-width); margin: 0 auto;
+}
+.section-header {
+  text-align: center; margin-bottom: 60px;
+}
+.section-header h2 {
+  font-size: 2.2rem; font-weight: 800; margin-bottom: 12px; color: var(--text-primary);
+}
+.section-header p { color: var(--text-secondary); font-size: 1.05rem; }
+
+/* ============ Hero ============ */
+.hero {
+  position: relative; z-index: 1; height: 100vh; min-height: 600px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 0 40px;
+  background: linear-gradient(160deg, var(--bg-hero-start) 0%, var(--bg-hero-end) 60%, #60a5fa 100%);
+  color: #fff;
+}
+.hero-title {
+  font-size: clamp(2rem, 5vw, 3.6rem); font-weight: 900;
+  line-height: 1.25; margin-bottom: 16px; color: #fff;
+}
+.hero-title .char {
+  display: inline-block; opacity: 0;
+  transform: translateY(30px);
+  animation: charFadeIn 0.6s forwards;
+}
+@keyframes charFadeIn { to { opacity: 1; transform: translateY(0); } }
+.hero-subtitle {
+  font-size: 1.15rem; color: rgba(255,255,255,0.85); max-width: 600px;
+  margin-bottom: 8px; opacity: 0; animation: fadeIn 0.8s 1.2s forwards;
+}
+.hero-psf {
+  font-size: 0.85rem; color: rgba(255,255,255,0.55); margin-bottom: 40px;
+  opacity: 0; animation: fadeIn 0.8s 1.4s forwards; letter-spacing: 0.04em;
+}
+@keyframes fadeIn { to { opacity: 1; } }
+.scroll-hint {
+  position: absolute; bottom: 30px; display: flex; flex-direction: column; align-items: center;
+  gap: 6px; opacity: 0; animation: fadeIn 0.8s 1.6s forwards;
+}
+.scroll-hint span { font-size: 0.78rem; color: rgba(255,255,255,0.7); }
+.scroll-arrow {
+  width: 24px; height: 24px; border-right: 2px solid rgba(255,255,255,0.6);
+  border-bottom: 2px solid rgba(255,255,255,0.6); transform: rotate(45deg);
+  animation: scrollBounce 1.8s ease-in-out infinite;
+}
+@keyframes scrollBounce {
+  0%, 100% { transform: rotate(45deg) translateY(0); }
+  50% { transform: rotate(45deg) translateY(8px); }
+}
+
+/* ============ Reveal Animation ============ */
+.reveal {
+  opacity: 0; transform: translateY(40px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ============ Background Section ============ */
+.bg-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center;
+}
+@media (max-width: 768px) { .bg-grid { grid-template-columns: 1fr; } }
+.bg-stat {
+  font-size: clamp(5rem, 10vw, 8rem); font-weight: 900;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--bg-hero-end) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; line-height: 1; margin-bottom: 8px;
+}
+.bg-stat-label { color: var(--text-secondary); font-size: 1rem; font-weight: 500; }
+.bg-text { color: var(--text-secondary); font-size: 1.05rem; }
+
+.cards-4 {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 50px;
+}
+@media (max-width: 900px) { .cards-4 { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 500px) { .cards-4 { grid-template-columns: 1fr; } }
+.card {
+  background: var(--bg-card); border-radius: var(--radius); padding: 28px;
+  border: 1px solid var(--border-subtle); transition: transform var(--transition), box-shadow var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+.card:hover { transform: translateY(-4px); box-shadow: var(--shadow-card); }
+.card h3 {
+  font-size: 1.1rem; font-weight: 700; margin-bottom: 10px; color: var(--accent);
+}
+.card p { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.65; }
+
+/* ============ Data Insight ============ */
+.data-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start;
+}
+@media (max-width: 840px) { .data-grid { grid-template-columns: 1fr; } }
+
+.chart-container { background: var(--bg-card); border-radius: var(--radius); padding: 32px; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-sm); }
+.chart-container h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 20px; color: var(--accent); }
+.chart-note { font-size: 0.75rem; color: var(--text-muted); margin-top: 12px; text-align: center; }
+
+#donut-chart { display: flex; flex-direction: column; align-items: center; }
+#donut-canvas { max-width: 320px; width: 100%; }
+
+#bar-chart { display: flex; flex-direction: column; gap: 14px; }
+.bar-row { display: flex; align-items: center; gap: 12px; }
+.bar-label {
+  width: 80px; text-align: right; font-size: 0.85rem; color: var(--text-secondary);
+  flex-shrink: 0; font-weight: 500;
+}
+.bar-track {
+  flex: 1; height: 28px; background: #f1f5f9; border-radius: 14px;
+  overflow: hidden; position: relative;
+}
+.bar-fill {
+  height: 100%; border-radius: 14px; position: relative;
+  transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(90deg, var(--accent), var(--bg-hero-end));
+}
+.bar-fill::after {
+  content: attr(data-val); position: absolute; right: 10px; top: 50%;
+  transform: translateY(-50%); font-size: 0.8rem; font-weight: 700; color: #fff;
+}
+
+/* ============ Word Anatomy Accordion ============ */
+.word-list { display: flex; flex-direction: column; gap: 16px; }
+.word-card {
+  background: var(--bg-card); border-radius: var(--radius);
+  border: 1px solid var(--border-subtle); overflow: hidden;
+  cursor: pointer; transition: border-color var(--transition), box-shadow var(--transition);
+  position: relative; box-shadow: var(--shadow-sm);
+}
+.word-card:hover { border-color: var(--border-focus); box-shadow: var(--shadow-card); }
+.word-card-header {
+  display: flex; align-items: center; gap: 14px; padding: 20px 24px;
+}
+.word-indicator {
+  width: 4px; border-radius: 2px; background: var(--accent);
+  min-height: 24px;
+}
+.word-card.open .word-indicator { background: var(--orange); }
+.word-card-header h3 { font-size: 1.2rem; font-weight: 700; flex-shrink: 0; color: var(--text-primary); }
+.word-card-header .tagline {
+  font-size: 0.9rem; color: var(--text-muted); flex: 1; text-align: right;
+}
+.word-card-body {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.word-card.open .word-card-body { max-height: 900px; }
+.word-card-content {
+  padding: 0 24px 24px 42px; display: grid; grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 600px) { .word-card-content { grid-template-columns: 1fr; } }
+.wc-col h4 {
+  font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--accent); margin-bottom: 6px;
+}
+.wc-col p { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7; }
+
+/* ============ Poll Section ============ */
+.poll-tabs { display: flex; gap: 0; margin-bottom: 24px; }
+.poll-tab {
+  flex: 1; padding: 14px; background: var(--bg-card);
+  border: 1px solid var(--border-subtle); color: var(--text-secondary);
+  cursor: pointer; font-size: 0.95rem; text-align: center;
+  transition: var(--transition); font-weight: 500;
+}
+.poll-tab:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+.poll-tab:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+.poll-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+.poll-body { background: var(--bg-card); border-radius: var(--radius); padding: 28px; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-sm); }
+.poll-question { font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; }
+.poll-options { display: flex; flex-direction: column; gap: 10px; }
+.poll-option {
+  display: flex; align-items: center; gap: 12px; padding: 14px 18px;
+  background: #f8fafc; border: 2px solid var(--border-subtle);
+  border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition);
+  position: relative; overflow: hidden;
+}
+.poll-option:hover { border-color: var(--accent); background: var(--accent-light); }
+.poll-option.voted { cursor: default; pointer-events: none; }
+.poll-option-bar {
+  position: absolute; top: 0; left: 0; height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--bg-hero-end));
+  opacity: 0.12; border-radius: var(--radius-sm);
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+.poll-option-text { position: relative; z-index: 1; flex: 1; font-size: 0.95rem; }
+.poll-option-pct { position: relative; z-index: 1; font-weight: 700; font-size: 0.9rem; color: var(--accent); }
+.poll-total { text-align: center; margin-top: 16px; font-size: 0.85rem; color: var(--text-muted); }
+.poll-total strong { color: var(--accent); }
+.poll-disclaimer { font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-top: 8px; }
+
+/* ============ Action Section ============ */
+.action-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+}
+@media (max-width: 768px) { .action-grid { grid-template-columns: 1fr; } }
+.action-card {
+  background: var(--bg-card); border-radius: var(--radius);
+  padding: 32px 28px; border: 1px solid var(--border-subtle);
+  text-align: center; transition: var(--transition); box-shadow: var(--shadow-sm);
+}
+.action-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-card); }
+.action-num {
+  font-size: 3rem; font-weight: 900;
+  background: linear-gradient(135deg, var(--green) 0%, var(--accent) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; line-height: 1; margin-bottom: 12px;
+}
+.action-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 10px; }
+.action-card p { font-size: 0.9rem; color: var(--text-secondary); }
+
+.pledge-wrap { text-align: center; margin-top: 40px; }
+.pledge-btn {
+  display: inline-block; padding: 16px 48px;
+  background: linear-gradient(135deg, var(--green) 0%, #059669 100%);
+  color: #fff; font-size: 1.05rem; font-weight: 700; border: none;
+  border-radius: 50px; cursor: pointer; transition: var(--transition);
+  letter-spacing: 0.04em;
+}
+.pledge-btn:hover { transform: scale(1.04); box-shadow: 0 8px 32px rgba(16,185,129,0.35); }
+.pledge-count { margin-top: 14px; font-size: 0.9rem; color: var(--text-muted); }
+.pledge-count strong { color: var(--green); font-size: 1.2rem; }
+
+.pledge-toast {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(0);
+  background: var(--bg-card); border: 2px solid var(--green);
+  border-radius: var(--radius); padding: 32px 40px; text-align: center;
+  z-index: 2000; transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: var(--shadow-lg);
+}
+.pledge-toast.show { transform: translate(-50%,-50%) scale(1); }
+.pledge-toast h3 { font-size: 1.4rem; margin-bottom: 8px; color: var(--green); }
+.pledge-toast p { font-size: 0.95rem; color: var(--text-secondary); }
+.toast-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.25); z-index: 1999; opacity: 0; pointer-events: none;
+  transition: opacity var(--transition);
+}
+.toast-overlay.show { opacity: 1; pointer-events: auto; }
+
+/* ============ Manifesto Generator ============ */
+.manifesto-wrap {
+  max-width: 680px; margin: 0 auto;
+  background: var(--bg-card); border-radius: var(--radius);
+  padding: 36px; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-card);
+}
+.manifesto-wrap h3 { font-size: 1.3rem; font-weight: 700; text-align: center; margin-bottom: 24px; color: var(--purple); }
+.manifesto-field { margin-bottom: 18px; }
+.manifesto-field label {
+  display: block; font-size: 0.88rem; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);
+}
+.manifesto-field input, .manifesto-field select {
+  width: 100%; padding: 12px 16px; border: 2px solid var(--border-subtle);
+  border-radius: var(--radius-sm); font-size: 0.95rem; background: #f8fafc;
+  color: var(--text-primary); transition: var(--transition);
+  font-family: inherit;
+}
+.manifesto-field input:focus, .manifesto-field select:focus {
+  outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(139,92,246,0.12);
+}
+.manifesto-gen-btn {
+  display: block; width: 100%; padding: 14px;
+  background: linear-gradient(135deg, var(--purple) 0%, #7c3aed 100%);
+  color: #fff; border: none; border-radius: 50px; font-size: 1rem;
+  font-weight: 700; cursor: pointer; transition: var(--transition); margin-top: 8px;
+}
+.manifesto-gen-btn:hover { box-shadow: 0 6px 24px rgba(139,92,246,0.35); transform: translateY(-2px); }
+.manifesto-result {
+  margin-top: 24px; text-align: center; display: none;
+}
+.manifesto-result.show { display: block; }
+.manifesto-result p { font-size: 0.85rem; color: var(--text-muted); margin-top: 10px; }
+.manifesto-result p strong { color: var(--purple); }
+#manifesto-canvas { max-width: 100%; border-radius: var(--radius-sm); box-shadow: var(--shadow-lg); }
+
+/* ============ Promise Wall ============ */
+.promise-wall {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px; margin-bottom: 32px;
+}
+.promise-note {
+  background: #fff; padding: 20px; border-radius: 8px;
+  box-shadow: 2px 3px 12px rgba(0,0,0,0.06);
+  position: relative; transition: transform var(--transition);
+  border-top: 4px solid var(--accent);
+}
+.promise-note:hover { transform: translateY(-3px) rotate(0deg); box-shadow: 4px 6px 20px rgba(0,0,0,0.1); }
+.promise-note .pn-text {
+  font-size: 0.9rem; color: var(--text-primary); line-height: 1.6;
+  margin-bottom: 10px; word-break: break-word;
+}
+.promise-note .pn-meta {
+  font-size: 0.75rem; color: var(--text-muted);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.promise-note .pn-tag {
+  display: inline-block; padding: 2px 8px; border-radius: 12px;
+  font-size: 0.68rem; font-weight: 600; color: #fff;
+}
+.promise-add-btn {
+  display: block; margin: 0 auto; padding: 14px 40px;
+  background: var(--accent); color: #fff; border: none;
+  border-radius: 50px; font-size: 1rem; font-weight: 700;
+  cursor: pointer; transition: var(--transition);
+}
+.promise-add-btn:hover { background: var(--accent-dark); box-shadow: 0 6px 24px rgba(37,99,235,0.3); }
+
+.promise-modal-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.35); z-index: 1999; opacity: 0; pointer-events: none;
+  transition: opacity var(--transition); display: flex;
+  align-items: center; justify-content: center;
+}
+.promise-modal-overlay.show { opacity: 1; pointer-events: auto; }
+.promise-modal {
+  background: var(--bg-card); border-radius: var(--radius);
+  padding: 32px; max-width: 440px; width: 90%;
+  box-shadow: var(--shadow-lg); text-align: center;
+}
+.promise-modal h3 { font-size: 1.3rem; font-weight: 700; margin-bottom: 16px; }
+.promise-modal textarea {
+  width: 100%; height: 100px; padding: 12px; border: 2px solid var(--border-subtle);
+  border-radius: var(--radius-sm); font-size: 0.95rem; resize: vertical;
+  font-family: inherit; margin-bottom: 16px; color: var(--text-primary);
+}
+.promise-modal textarea:focus { outline: none; border-color: var(--accent); }
+.promise-modal-btns { display: flex; gap: 12px; justify-content: center; }
+.promise-modal-btns button {
+  padding: 10px 28px; border-radius: 50px; font-size: 0.9rem;
+  font-weight: 600; cursor: pointer; transition: var(--transition);
+}
+.pm-submit { background: var(--accent); color: #fff; border: none; }
+.pm-submit:hover { background: var(--accent-dark); }
+.pm-cancel { background: #f1f5f9; color: var(--text-secondary); border: 1px solid var(--border-subtle); }
+.pm-cancel:hover { background: #e2e8f0; }
+.promise-empty { text-align: center; color: var(--text-muted); padding: 40px; font-size: 0.95rem; }
+
+/* ============ Resources ============ */
+.resource-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;
+}
+.resource-card {
+  background: var(--bg-card); border-radius: var(--radius);
+  padding: 28px; border: 1px solid var(--border-subtle);
+  text-align: center; box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+.resource-card:hover { box-shadow: var(--shadow-card); transform: translateY(-2px); }
+.resource-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; color: var(--accent); }
+.resource-card p { font-size: 1.3rem; font-weight: 700; letter-spacing: 0.04em; color: var(--text-primary); }
+.resource-card .note { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+
+/* ============ Global Stats Panel (Supabase) ============ */
+.cb_global-stats {
+  max-width: var(--max-width); margin: 0 auto 40px;
+  background: var(--bg-card); border-radius: var(--radius);
+  padding: 32px; border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-card);
+}
+.cb_global-stats .cb_gs-header {
+  text-align: center; margin-bottom: 28px;
+}
+.cb_global-stats .cb_gs-header h3 {
+  font-size: 1.1rem; font-weight: 800;
+  background: linear-gradient(135deg, var(--bg-hero-start), var(--bg-hero-end));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; display: inline-block;
+}
+.cb_global-stats .cb_gs-header p {
+  font-size: 0.82rem; color: var(--text-muted); margin-top: 4px;
+}
+.cb_gs-counters {
+  display: flex; justify-content: center; gap: 40px; margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+.cb_gs-counter {
+  text-align: center; min-width: 120px;
+}
+.cb_gs-counter .cb_gs-num {
+  font-size: 2.2rem; font-weight: 900;
+  background: linear-gradient(135deg, var(--green), var(--accent));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; line-height: 1;
+}
+.cb_gs-counter .cb_gs-label {
+  font-size: 0.82rem; color: var(--text-muted); margin-top: 6px;
+  font-weight: 500;
+}
+.cb_gs-polls {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px; margin-bottom: 24px;
+}
+.cb_gs-poll-card {
+  background: #f8fafc; border-radius: var(--radius-sm);
+  padding: 18px; border: 1px solid var(--border-subtle);
+}
+.cb_gs-poll-card h4 {
+  font-size: 0.9rem; font-weight: 700; margin-bottom: 10px;
+  color: var(--text-primary);
+}
+.cb_gs-poll-list { display: flex; flex-direction: column; gap: 6px; }
+.cb_gs-poll-row {
+  display: flex; align-items: center; gap: 10px; font-size: 0.82rem;
+}
+.cb_gs-poll-row .cb_gs_opt {
+  width: 80px; text-align: right; color: var(--text-secondary);
+  flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.cb_gs-poll-row .cb_gs_track {
+  flex: 1; height: 20px; background: #e2e8f0; border-radius: 10px;
+  overflow: hidden; position: relative;
+}
+.cb_gs-poll-row .cb_gs_fill {
+  height: 100%; border-radius: 10px;
+  background: linear-gradient(90deg, var(--accent), var(--bg-hero-end));
+  transition: width 0.8s ease;
+}
+.cb_gs-poll-row .cb_gs_pct {
+  width: 40px; font-weight: 700; color: var(--accent);
+  font-size: 0.78rem; text-align: left; flex-shrink: 0;
+}
+.cb_gs-promises {
+  border-top: 1px solid var(--border-subtle); padding-top: 20px;
+}
+.cb_gs-promises h4 {
+  font-size: 0.9rem; font-weight: 700; margin-bottom: 12px;
+  color: var(--text-primary);
+  display: flex; align-items: center; gap: 8px;
+}
+.cb_gs-promises h4::before {
+  content: ''; display: inline-block; width: 6px; height: 6px;
+  background: var(--accent); border-radius: 50%;
+}
+.cb_gs-promise-item {
+  padding: 10px 14px; background: #f8fafc;
+  border-radius: 8px; margin-bottom: 8px;
+  border-left: 3px solid var(--accent);
+  font-size: 0.85rem; color: var(--text-secondary);
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 12px;
+}
+.cb_gs-promise-item .cb_gs_ptext {
+  flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.cb_gs-promise-item .cb_gs_ptime {
+  font-size: 0.75rem; color: var(--text-muted); flex-shrink: 0;
+}
+.cb_gs-no-data {
+  text-align: center; color: var(--text-muted);
+  font-size: 0.85rem; padding: 16px;
+}
+.cb_gs-sync-note {
+  font-size: 0.72rem; color: var(--text-muted);
+  text-align: center; margin-top: 16px;
+}
+
+/* ============ Footer ============ */
+.footer {
+  position: relative; z-index: 1; padding: 40px;
+  text-align: center; border-top: 1px solid var(--border-subtle);
+  color: var(--text-muted); font-size: 0.85rem; line-height: 2; background: #fff;
+}
+.footer strong { color: var(--text-secondary); }
+.footer .psf-badge {
+  display: inline-block; margin-top: 8px; padding: 4px 16px;
+  background: linear-gradient(135deg, #1e40af, #3b82f6);
+  color: #fff; border-radius: 20px; font-size: 0.78rem; font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.back-to-top {
+  display: inline-block; margin-top: 16px; width: 40px; height: 40px;
+  border: 1px solid var(--border-subtle); border-radius: 50%;
+  background: var(--bg-card); cursor: pointer;
+  font-size: 1.2rem; color: var(--text-secondary); line-height: 38px;
+  transition: var(--transition);
+}
+.back-to-top:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ============ Emotion Understander Test ============ */
+.eut-container {
+  max-width: 640px; margin: 0 auto;
+}
+.eut-card {
+  background: var(--bg-card); border-radius: var(--radius);
+  padding: 32px 28px; border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-card); text-align: center;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.eut-card.fade-out {
+  opacity: 0; transform: translateY(-12px); pointer-events: none;
+}
+.eut-card.fade-in {
+  opacity: 1; transform: translateY(0);
+}
+.eut-progress-wrap {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+}
+.eut-progress-num {
+  font-size: 0.82rem; color: var(--accent); font-weight: 700;
+  white-space: nowrap; min-width: 52px;
+}
+.eut-progress-bar {
+  flex: 1; height: 6px; background: var(--border-subtle); border-radius: 3px; overflow: hidden;
+}
+.eut-progress-fill {
+  height: 100%; background: linear-gradient(90deg, var(--accent), var(--bg-hero-end));
+  border-radius: 3px; transition: width 0.4s ease;
+}
+.eut-opt-grid {
+  display: flex; flex-direction: column; gap: 10px;
+}
+.eut-option {
+  display: block; width: 100%; padding: 14px 18px;
+  background: #f8fafc; border: 2px solid var(--border-subtle);
+  border-radius: var(--radius-sm); font-size: 0.95rem; color: var(--text-primary);
+  cursor: pointer; text-align: left; transition: all 0.25s ease;
+  font-family: inherit;
+}
+.eut-option:hover {
+  border-color: var(--accent); background: var(--accent-light);
+  transform: translateX(3px);
+}
+.eut-option.selected {
+  border-color: var(--accent); background: linear-gradient(135deg, var(--accent-light), #eff6ff);
+  font-weight: 600; color: var(--accent-dark);
+}
+.eut-btn {
+  display: inline-block; padding: 14px 40px;
+  background: linear-gradient(135deg, var(--accent), var(--bg-hero-end));
+  color: #fff; font-size: 1rem; font-weight: 700; border: none;
+  border-radius: 50px; cursor: pointer; transition: all var(--transition);
+  font-family: inherit; letter-spacing: 0.03em;
+}
+.eut-btn:hover { transform: scale(1.04); box-shadow: 0 8px 32px rgba(37,99,235,0.35); }
+.eut-btn-secondary {
+  background: var(--bg-card); color: var(--accent); border: 2px solid var(--accent);
+}
+.eut-btn-secondary:hover { background: var(--accent-light); box-shadow: none; transform: scale(1.02); }
+.eut-radar-wrap {
+  display: flex; justify-content: center; margin: 24px 0;
+}
+#eut-radar { max-width: 280px; width: 100%; }
+.eut-dim-bars { margin-top: 20px; }
+.eut-dim-row { margin-bottom: 12px; }
+.eut-dim-row-label {
+  display: flex; justify-content: space-between; font-size: 0.85rem;
+  margin-bottom: 4px; color: var(--text-secondary);
+}
+.eut-dim-row-label span:last-child { font-weight: 700; color: var(--accent); }
+.eut-dim-track {
+  height: 8px; background: var(--border-subtle); border-radius: 4px; overflow: hidden;
+}
+.eut-dim-fill {
+  height: 100%; border-radius: 4px; transition: width 1s ease;
+}
+.eut-share-card {
+  background: linear-gradient(135deg, #1e3a5f 0%, #2d5aa0 50%, #4a7fd4 100%);
+  border-radius: var(--radius); padding: 32px 28px; color: #fff;
+  text-align: center; box-shadow: var(--shadow-lg); max-width: 380px; margin: 0 auto;
+  position: relative; overflow: hidden;
+}
+.eut-share-card::before {
+  content: ''; position: absolute; top: -40px; right: -40px;
+  width: 120px; height: 120px; background: rgba(255,255,255,0.06);
+  border-radius: 50%;
+}
+.eut-share-card .share-emoji { font-size: 3.5rem; margin-bottom: 8px; }
+.eut-share-card .share-name { font-size: 1.6rem; font-weight: 800; margin-bottom: 4px; }
+.eut-share-card .share-tagline { font-size: 0.9rem; opacity: 0.8; margin-bottom: 20px; }
+.eut-share-card .share-dims { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+.eut-share-card .share-dim { text-align: center; }
+.eut-share-card .share-dim-val { font-size: 1.3rem; font-weight: 800; }
+.eut-share-card .share-dim-label { font-size: 0.72rem; opacity: 0.65; }
+.eut-share-card .share-footer { font-size: 0.78rem; opacity: 0.55; border-top: 1px solid rgba(255,255,255,0.12); padding-top: 14px; }
+
+/* Fallback: when JS is disabled, show all reveal elements immediately */
+@media (scripting: none) {
+  .reveal { opacity: 1 !important; transform: none !important; }
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+/* Supabase Init — synchronous, no async login needed */
+var supabase = supabase.createClient(
+  'https://rxhuwqucrxfcbiamstla.supabase.co',
+  'sb_publishable_r3llR3xVZ2Z_Ne69kWJh-g_rKUM8CXc'
+);
+var dbReady = true;
+var dbSessionId = localStorage.getItem('as_db_sid');
+if (!dbSessionId) {
+  dbSessionId = 'sess_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+  localStorage.setItem('as_db_sid', dbSessionId);
+}
+</script>
+
+</head>
+<body>
+
+<canvas id="particle-canvas"></canvas>
+
+<!-- ============ Navigation ============ -->
+<nav class="nav" id="nav">
+  <div class="nav-logo">屏幕内外的精神健康</div>
+  <button class="hamburger" id="hamburger" aria-label="菜单">
+    <span></span><span></span><span></span>
+  </button>
+  <ul class="nav-links" id="nav-links">
+    <li><a href="#background">项目背景</a></li>
+    <li><a href="#data">数据洞察</a></li>
+    <li><a href="#words">词汇解剖</a></li>
+    <li><a href="#thermometer">情绪测试</a></li>
+    <li><a href="#poll">互动调研</a></li>
+    <li><a href="#action">行动倡议</a></li>
+    <li><a href="#manifesto">宣言生成</a></li>
+    <li><a href="#wall">承诺墙</a></li>
+    <li><a href="#about">关于PSF</a></li>
+  </ul>
+</nav>
+
+<!-- ============ Hero ============ -->
+<section class="hero" id="hero">
+  <h1 class="hero-title" id="hero-title"></h1>
+  <p class="hero-subtitle">当"玉玉症"成为段子，谁还记得那是一群人的真实痛苦？</p>
+  <p class="hero-psf">PSF 社会创新竞赛项目 · 屏幕内外的精神健康</p>
+  <div class="scroll-hint">
+    <span>向下探索</span>
+    <div class="scroll-arrow"></div>
+  </div>
+</section>
+
+<!-- ============ Emotion Understander Test ============ -->
+<section class="section" id="thermometer">
+  <div class="section-header reveal">
+    <h2>你属于哪种情绪理解者？</h2>
+    <p>16 道场景题，探索你的共情类型</p>
+  </div>
+  <div class="reveal eut-container" id="eut-root"></div>
+</section>
+
+<!-- ============ Background ============ -->
+<section class="section" id="background">
+  <div class="section-header reveal">
+    <h2>语言，可以伤人</h2>
+    <p>社交媒体上的流行词汇，正在悄悄重塑我们对心理健康的认知</p>
+  </div>
+  <div class="bg-grid">
+    <div class="reveal">
+      <div class="bg-stat">1 in 5</div>
+      <div class="bg-stat-label">约五分之一的青少年面临心理健康困扰</div>
+    </div>
+    <div class="bg-text reveal">
+      在全球范围内，约五分之一的青少年正经历不同程度的心理健康问题。然而，在各种社交媒体平台上，与心理健康相关的网络用语正在将严肃的医学问题转化为轻浮的谈资。污名化不仅伤害个体，更在系统层面阻碍了早期干预和求助行为。
+    </div>
+  </div>
+  <div class="cards-4">
+    <div class="card reveal">
+      <h3>污名化的代价</h3>
+      <p>害怕被贴标签 → 不敢求助 → 错过最佳干预时机。污名化形成恶性循环。</p>
+    </div>
+    <div class="card reveal">
+      <h3>社媒的放大效应</h3>
+      <p>算法推荐偏好情绪化、争议性的内容，偏见性言论获得超乎寻常的曝光。</p>
+    </div>
+    <div class="card reveal">
+      <h3>语言的暴力</h3>
+      <p>调侃式表达消解了问题的严肃性——真实的痛苦被幽默掩盖。</p>
+    </div>
+    <div class="card reveal" style="border-left: 4px solid var(--accent);">
+      <h3>从洞察者到创变者</h3>
+      <p>PSF 设计思维：我们既是深受社媒影响的一代，也是压力空前的一代。不再做沉默的承受者，成为"故事重写者"——用我们这一代的语言，讲述我们自己的心理健康故事。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Data Insight ============ -->
+<section class="section" id="data">
+  <div class="section-header reveal">
+    <h2>数据洞察</h2>
+    <p>这些数字背后，是真实的社会认知现状</p>
+  </div>
+  <div class="data-grid">
+    <div class="chart-container reveal">
+      <h3>你听过以下哪些词？</h3>
+      <div id="donut-chart"><canvas id="donut-canvas" width="320" height="320"></canvas></div>
+      <p class="chart-note">模拟数据，基于文献综述推断</p>
+    </div>
+    <div class="chart-container reveal">
+      <h3>不同词汇的负面感知评分（1-10）</h3>
+      <div id="bar-chart">
+        <div class="bar-row"><span class="bar-label">玉玉症</span><div class="bar-track"><div class="bar-fill" data-val="8.7" style="width:0%"></div></div></div>
+        <div class="bar-row"><span class="bar-label">emo</span><div class="bar-track"><div class="bar-fill" data-val="6.2" style="width:0%"></div></div></div>
+        <div class="bar-row"><span class="bar-label">矫情</span><div class="bar-track"><div class="bar-fill" data-val="9.1" style="width:0%"></div></div></div>
+        <div class="bar-row"><span class="bar-label">玻璃心</span><div class="bar-track"><div class="bar-fill" data-val="8.4" style="width:0%"></div></div></div>
+        <div class="bar-row"><span class="bar-label">精神内耗</span><div class="bar-track"><div class="bar-fill" data-val="7.3" style="width:0%"></div></div></div>
+      </div>
+      <p class="chart-note">模拟数据，基于文献综述推断</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Word Anatomy ============ -->
+<section class="section" id="words">
+  <div class="section-header reveal">
+    <h2>词汇深度解剖</h2>
+    <p>每一个流行词背后，都有值得审视的语义学和社会心理学机制</p>
+  </div>
+  <div class="word-list" id="word-list"></div>
+</section>
+
+
+<!-- ============ Poll ============ -->
+<section class="section" id="poll">
+  <div class="section-header reveal">
+    <h2>你的声音，就是数据</h2>
+    <p>参与调研，帮助我们更好地理解社会认知现状</p>
+  </div>
+  <div class="reveal">
+    <div class="poll-tabs" id="poll-tabs">
+      <button class="poll-tab active" data-index="0">你觉得哪个词最伤人？</button>
+      <button class="poll-tab" data-index="1">你或身边的人是否因这些词不敢表达真实情绪？</button>
+    </div>
+    <div class="poll-body" id="poll-body"></div>
+    <p class="poll-disclaimer">本投票数据将用于项目研究，匿名同步至云端数据库，多人数据互通</p>
+  </div>
+</section>
+
+<!-- ============ Global Stats (Supabase) ============ -->
+<div class="reveal" style="max-width:var(--max-width);margin:0 auto 40px;">
+  <div class="cb_global-stats" id="cb_global_stats">
+    <div class="cb_gs-header">
+      <h3>全球探索者</h3>
+      <p>来自所有访问者的实时数据</p>
+    </div>
+    <div class="cb_gs-counters">
+      <div class="cb_gs-counter">
+        <div class="cb_gs-num" id="cb_pledge_total">--</div>
+        <div class="cb_gs-label">总承诺人数</div>
+      </div>
+      <div class="cb_gs-counter">
+        <div class="cb_gs-num" id="cb_decl_total">--</div>
+        <div class="cb_gs-label">总宣言数</div>
+      </div>
+    </div>
+    <div class="cb_gs-polls" id="cb_gs_polls">
+      <div class="cb_gs-poll-card">
+        <h4>你觉得哪个词最伤人？</h4>
+        <div class="cb_gs-poll-list" id="cb_gs_poll0"><div class="cb_gs-no-data">加载中...</div></div>
+      </div>
+      <div class="cb_gs-poll-card">
+        <h4>是否因这些词不敢表达真实情绪？</h4>
+        <div class="cb_gs-poll-list" id="cb_gs_poll1"><div class="cb_gs-no-data">加载中...</div></div>
+      </div>
+    </div>
+    <div class="cb_gs-promises" id="cb_gs_promises_wrap" style="display:none;">
+      <h4>最新承诺</h4>
+      <div id="cb_gs_promises"></div>
+    </div>
+    <p class="cb_gs-sync-note" id="cb_gs_sync_note">数据由 Supabase 云端同步</p>
+  </div>
+</div>
+
+<!-- ============ Action ============ -->
+<section class="section" id="action">
+  <div class="section-header reveal">
+    <h2>行动倡议</h2>
+    <p>改变，从每一个细微的语言选择开始</p>
+  </div>
+  <div class="action-grid">
+    <div class="action-card reveal">
+      <div class="action-num">01</div>
+      <h3>觉察</h3>
+      <p>有意识地记录自己一周内使用了多少次污名化词汇。觉察是改变的第一步——试着打开手机备忘录，每当使用"玉玉症""emo""矫情"时，打一个勾。</p>
+    </div>
+    <div class="action-card reveal">
+      <div class="action-num">02</div>
+      <h3>改变</h3>
+      <p>用"我最近压力很大"替代"我emo了"；用"你需要聊聊吗"替代"别矫情了"。精准的语言让真实的情绪被看见，而不是被标签所遮蔽。</p>
+    </div>
+    <div class="action-card reveal">
+      <div class="action-num">03</div>
+      <h3>传播</h3>
+      <p>将反污名化理念分享给至少3个人。一个转发、一次对谈、一次朋友圈——每一个微小的传播都是一颗种子。</p>
+    </div>
+  </div>
+  <div class="pledge-wrap reveal">
+    <button class="pledge-btn" id="pledge-btn">我承诺加入</button>
+    <div class="pledge-count">已有 <strong id="pledge-count">0</strong> 人签署承诺</div>
+  </div>
+</section>
+
+<!-- ============ Manifesto Generator ============ -->
+<section class="section" id="manifesto">
+  <div class="section-header reveal">
+    <h2>生成你的专属反污名化宣言</h2>
+    <p>选择模板，生成一张精美卡片，可右键保存分享</p>
+  </div>
+  <div class="manifesto-wrap reveal" id="manifesto-wrap">
+    <div class="manifesto-field">
+      <label for="mf-name">你的名字 / 昵称</label>
+      <input type="text" id="mf-name" placeholder="输入你的昵称" maxlength="20">
+    </div>
+    <div class="manifesto-field">
+      <label for="mf-template">选择宣言模板</label>
+      <select id="mf-template">
+        <option value="0">我承诺，不再用_____来衡量别人的痛苦。</option>
+        <option value="1">从今天起，我用"你还好吗"代替"别矫情了"。</option>
+        <option value="2">语言可以伤人，也可以治愈——我选择后者。</option>
+      </select>
+    </div>
+    <button class="manifesto-gen-btn" id="mf-gen-btn">生成宣言卡片</button>
+    <div class="manifesto-result" id="mf-result">
+      <canvas id="manifesto-canvas" width="600" height="360"></canvas>
+      <p>已生成 <strong id="mf-count">0</strong> 张宣言（右键卡片可保存图片）</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Promise Wall ============ -->
+<section class="section" id="wall">
+  <div class="section-header reveal">
+    <h2>承诺墙</h2>
+    <p>每一份承诺，都是改变的开始</p>
+  </div>
+  <div class="reveal">
+    <div class="promise-wall" id="promise-wall"></div>
+    <button class="promise-add-btn" id="promise-add-btn">我也要承诺</button>
+  </div>
+</section>
+
+<!-- ============ About PSF ============ -->
+<section class="section" id="about">
+  <div class="section-header reveal">
+    <h2>关于本项目</h2>
+    <p>Project Shared Future — 共同未来行动全球挑战</p>
+  </div>
+  <div class="reveal" style="max-width:800px;margin:0 auto;">
+    <p style="text-align:center;color:var(--text-secondary);margin-bottom:32px;line-height:1.8;">
+      PSF 是一个面向全球青年的国际公益项目挑战赛，致力于用创新思维解决社会问题、推动可持续发展（SDGs）。
+      本项目关注 <strong>SDG 3</strong>（良好健康与福祉）、<strong>SDG 4</strong>（优质教育）、<strong>SDG 10</strong>（减少不平等）。
+    </p>
+
+
+  </div>
+</section>
+
+<!-- ============ Resources ============ -->
+<section class="section" id="resources">
+  <div class="section-header reveal">
+    <h2>资源与支持</h2>
+    <p>如果你或身边的人需要帮助，这些资源随时可用</p>
+  </div>
+  <div class="resource-grid reveal">
+    <div class="resource-card">
+      <h3>全国心理援助热线</h3>
+      <p>400-161-9995</p>
+      <div class="note">24小时免费服务</div>
+    </div>
+    <div class="resource-card">
+      <h3>青少年心理援助热线</h3>
+      <p>12355</p>
+      <div class="note">共青团中央主办</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ Footer ============ -->
+<footer class="footer" id="footer">
+  <p>屏幕内外的精神健康 &mdash; 青少年精神健康反污名化项目</p>
+  <p>&copy; 2026 保留所有权利</p>
+  <span class="psf-badge">PSF 社会创新竞赛参赛作品</span>
+  <br>
+  <button class="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="回到顶部">&#8593;</button>
+</footer>
+
+<!-- ============ Toast Overlay ============ -->
+<div class="toast-overlay" id="toast-overlay"></div>
+<div class="pledge-toast" id="pledge-toast">
+  <h3>感谢你的承诺</h3>
+  <p>你的每一份觉察与行动，都在让这个世界变得更好。</p>
+</div>
+
+<!-- Promise Modal -->
+<div class="promise-modal-overlay" id="promise-modal-overlay">
+  <div class="promise-modal">
+    <h3>写下你的承诺</h3>
+    <textarea id="pm-input" placeholder="例如：我承诺不再用'矫情'来评价他人的情绪..." maxlength="120"></textarea>
+    <div class="promise-modal-btns">
+      <button class="pm-cancel" id="pm-cancel">取消</button>
+      <button class="pm-submit" id="pm-submit">加入承诺墙</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============ Particle Canvas (Light Theme – Blue Soft Dots) ============ */
+(function() {
+  const canvas = document.getElementById('particle-canvas');
+  const ctx = canvas.getContext('2d');
+  let w, h, particles = [];
+  const N = 200;
+  let animId, isVisible = true;
+
+  function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+
+  const colors = ['#2563eb','#3b82f6','#60a5fa','#93c5fd','#8b5cf6','#a78bfa'];
+  class Particle {
+    constructor() { this.reset(true); }
+    reset(initial) {
+      this.x = Math.random() * w; this.y = initial ? Math.random() * h : h + 10;
+      this.vx = (Math.random() - 0.5) * 0.45; this.vy = -(Math.random() * 0.35 + 0.08);
+      this.r = Math.random() * 2.5 + 0.6; this.opacity = Math.random() * 0.35 + 0.08;
+      this.color = colors[Math.floor(Math.random() * colors.length)];
+    }
+    update() { this.x += this.vx; this.y += this.vy; if (this.y < -20 || this.x < -20 || this.x > w + 20) this.reset(false); this.vx += (Math.random()-0.5)*0.01; this.vx = Math.max(-0.6, Math.min(0.6, this.vx)); }
+  }
+  for (let i = 0; i < N; i++) particles.push(new Particle());
+
+  function draw() {
+    ctx.clearRect(0, 0, w, h);
+    particles.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.globalAlpha = p.opacity; ctx.fillStyle = p.color; ctx.fill(); });
+    ctx.globalAlpha = 1;
+    for (let i = 0; i < N; i++) for (let j = i+1; j < N; j++) { const dx = particles[i].x-particles[j].x, dy = particles[i].y-particles[j].y, dist = Math.sqrt(dx*dx+dy*dy); if (dist<100) { ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y); ctx.strokeStyle = `rgba(37,99,235,${0.04*(1-dist/100)})`; ctx.lineWidth=0.5; ctx.stroke(); } }
+    particles.forEach(p => p.update());
+  }
+
+  function loop() { if (!isVisible) { animId = requestAnimationFrame(loop); return; } draw(); animId = requestAnimationFrame(loop); }
+  const obs = new IntersectionObserver(e => { isVisible = e[0].isIntersecting; }, { threshold: 0 });
+  obs.observe(document.getElementById('hero'));
+  loop();
+})();
+
+/* ============ Hero Title Char Animation ============ */
+(function() {
+  const el = document.getElementById('hero-title');
+  '屏幕内外的精神健康'.split('').forEach((ch, i) => { const s = document.createElement('span'); s.className='char'; s.textContent=ch; s.style.animationDelay = `${i*0.08}s`; el.appendChild(s); });
+})();
+
+/* ============ Scroll Reveal ============ */
+(function() {
+  const obs = new IntersectionObserver(entries => { entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }); }, { threshold: 0.12, rootMargin: '0px 0px -30px 0px' });
+  const revealEls = document.querySelectorAll('.reveal');
+  revealEls.forEach(el => {
+    obs.observe(el);
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight && rect.bottom > 0) {
+      el.classList.add('visible');
+    }
+  });
+})();
+
+/* ============ Navigation Scroll & Highlight ============ */
+(function() {
+  const nav = document.getElementById('nav'), links = document.querySelectorAll('.nav-links a');
+  const sections = []; links.forEach(a => { const id = a.getAttribute('href').slice(1), el = document.getElementById(id); if (el) sections.push({el,id}); });
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 60);
+    let cur = sections[0]?.id || '';
+    sections.forEach(({el,id}) => { if (el.getBoundingClientRect().top <= 140) cur = id; });
+    links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur));
+  });
+})();
+
+/* ============ Hamburger ============ */
+(function() {
+  const btn = document.getElementById('hamburger'), menu = document.getElementById('nav-links');
+  btn.addEventListener('click', () => { btn.classList.toggle('open'); menu.classList.toggle('open'); });
+  menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => { btn.classList.remove('open'); menu.classList.remove('open'); }));
+})();
+
+/* ============ Donut Chart ============ */
+(function() {
+  const canvas = document.getElementById('donut-canvas'); if (!canvas) return; const ctx = canvas.getContext('2d');
+  const data = [{l:'玉玉症',pct:87,c:'#2563eb'},{l:'emo',pct:92,c:'#3b82f6'},{l:'矫情',pct:78,c:'#8b5cf6'},{l:'玻璃心',pct:71,c:'#f97316'},{l:'精神内耗',pct:65,c:'#10b981'}];
+  const cx=160,cy=160,oR=120,iR=70; let ap=0;
+  function ring(sa,sweep,c,a){ const r=parseInt(c.slice(1,3),16),g=parseInt(c.slice(3,5),16),b=parseInt(c.slice(5,7),16); ctx.beginPath(); ctx.arc(cx,cy,oR,sa,sa+sweep); ctx.arc(cx,cy,iR,sa+sweep,sa,true); ctx.closePath(); ctx.fillStyle=`rgba(${r},${g},${b},${a})`; ctx.fill(); }
+  function anim() { ctx.clearRect(0,0,320,320); let cum=-Math.PI/2; data.forEach(d=>{ const sw=(d.pct/100)*Math.PI*2*ap; ring(cum,sw,d.c,0.75); if(ap>0.5){ const mid=cum+sw/2, lr=oR+28; ctx.fillStyle='#1e293b'; ctx.font='11px -apple-system,sans-serif'; ctx.textAlign='center'; ctx.fillText(d.l,cx+Math.cos(mid)*lr,cy+Math.sin(mid)*lr-6); ctx.fillText(d.pct+'%',cx+Math.cos(mid)*lr,cy+Math.sin(mid)*lr+8); } cum+=sw; }); ctx.fillStyle='#1e293b'; ctx.font='bold 13px -apple-system,sans-serif'; ctx.textAlign='center'; ctx.fillText('识别率',cx,cy-4); ctx.font='bold 20px -apple-system,sans-serif'; ctx.fillText(Math.round(ap*100)+'%',cx,cy+20); if(ap<1){ap+=0.015; requestAnimationFrame(anim);} }
+  const obs=new IntersectionObserver(e=>{if(e[0].isIntersecting){anim();obs.disconnect();}},{threshold:0.3}); obs.observe(canvas);
+})();
+
+/* ============ Bar Chart ============ */
+(function() {
+  const bars=document.querySelectorAll('.bar-fill'), obs=new IntersectionObserver(e=>{if(e[0].isIntersecting){bars.forEach(b=>b.style.width=(parseFloat(b.getAttribute('data-val'))*10)+'%'); obs.disconnect();}},{threshold:0.3});
+  if(bars.length) obs.observe(bars[0].parentElement);
+})();
+
+/* ============ Word Anatomy Accordion ============ */
+(function() {
+  const words=[
+    {title:'玉玉症',tagline:'将临床诊断降格为网络梗',origin:'2020年前后从短视频平台兴起，用搞怪口音将"抑郁症"戏谑化。',scenario:'评论区常见："我今天又玉玉了""哈哈哈你玉玉症犯了吧"。',mechanism:'将临床诊断降格为网络梗，消解疾病严肃性；真正患者可能因此不敢表达。',academic:'中科院心理所研究发现，"认为抑郁症不是真正的医学疾病"是最常见的污名类型之一。'},
+    {title:'emo',tagline:'用轻飘飘的网络用语替代真实的情绪表达',origin:'源自emo音乐亚文化（emotional hardcore），在中文互联网被简化为"情绪低落"的代称。',scenario:'"我emo了"替代"我很难过"，成为青年群体的通用情绪符号。',mechanism:'用轻飘飘的网络用语替代真实的情绪表达，使深度情感交流被消解。',academic:'语言亚文化研究指出，网络流行语的"夸张戏谑"特征可能遮蔽真实的心理需求。'},
+    {title:'矫情',tagline:'直接否定他人情绪体验的合法性',origin:'传统词汇，在网络语境中广泛用于否定他人情绪反应，成为拒绝共情的快捷方式。',scenario:'"你也太矫情了吧""至于吗"——也可能内化为自我否定。',mechanism:'否定他人情绪体验的合法性，形成"求助=矫情"的认知链条。',academic:'自我污名（self-stigma）是阻碍求助行为的最强预测因子之一。'},
+    {title:'玻璃心',tagline:'为语言暴力提供合理化借口',origin:'2010年代网络流行语，用"玻璃"比喻心理承受能力差，后泛化为对所有情绪反应的否定。',scenario:'"别这么玻璃心""开个玩笑而已"——常见于冲突场景的二次否定。',mechanism:'将正常情绪反应病理化为"脆弱"，为语言暴力提供合理化借口。',academic:'郭小安（2023）指出，自我贬抑式网络流行语可能导致青年"精神内耗与自我迷失"。'},
+    {title:'精神内耗',tagline:'以"自我诊断"替代专业求助',origin:'心理学"ego depletion"的本土化转译，2022年成为年度热词。',scenario:'"每天都在精神内耗""别内耗了"——广泛用于描述各种心理状态。',mechanism:'以标签简化复杂问题，可能形成"确认偏差"——越相信自己在内耗，越体验到内耗。',academic:'Z世代研究指出，网络热词可能形成"确认偏差"和"自我实现预言"。'}
+  ];
+  const c=document.getElementById('word-list');
+  words.forEach((w,i)=>{const d=document.createElement('div');d.className='word-card';d.innerHTML=`<div class="word-card-header" data-index="${i}"><div class="word-indicator"></div><h3>${w.title}</h3><span class="tagline">${w.tagline}</span></div><div class="word-card-body"><div class="word-card-content"><div class="wc-col"><h4>词汇来源与演变</h4><p>${w.origin}</p></div><div class="wc-col"><h4>使用场景分析</h4><p>${w.scenario}</p></div><div class="wc-col"><h4>污名化机制</h4><p>${w.mechanism}</p></div><div class="wc-col"><h4>学术视角</h4><p>${w.academic}</p></div></div></div>`;c.appendChild(d);});
+  c.addEventListener('click',e=>{const h=e.target.closest('.word-card-header');if(!h)return;const card=h.parentElement,was=card.classList.contains('open');c.querySelectorAll('.word-card.open').forEach(x=>x.classList.remove('open'));if(!was)card.classList.add('open');});
+})();
+
+
+/* ============ Emotion Understander Test ============ */
+(function() {
+  const root = document.getElementById('eut-root');
+  if (!root) return;
+
+  // ---- Data ----
+  const questions = [
+    { id: 1, title: "朋友突然连续三天没回消息，你更容易想到：", opts: ["最近是不是遇到什么事", "可能只是忙", "等他想说的时候自然会说", "应该是不想回"] },
+    { id: 2, title: "有人总是提前到场，你觉得原因更可能是：", opts: ["怕影响别人", "责任感强", "习惯如此", "容易紧张"] },
+    { id: 3, title: "一个同事最近变得特别安静，你会：", opts: ["留意一下状态", "观察几天再说", "不主动过问", "觉得只是性格问题"] },
+    { id: 4, title: "朋友说最近有点累，你通常会接：", opts: ["发生什么了吗", "休息一下吧", "大家最近都挺累", "还有多久结束"] },
+    { id: 5, title: "如果有人经常取消聚会，你更容易理解成：", opts: ["最近状态不好", "行程冲突", "兴趣变了", "不够重视关系"] },
+    { id: 6, title: "别人犯错后一直自责，你会觉得：", opts: ["他已经很难受了", "他比较认真", "时间会解决", "没必要想那么多"] },
+    { id: 7, title: "看到陌生人在网上发长篇情绪内容，你第一反应：", opts: ["应该积累很久了", "希望有人回应他", "网络确实适合表达", "为什么不找现实朋友"] },
+    { id: 8, title: "朋友说最近总睡不好，你更关注：", opts: ["是不是压力很大", "睡眠本身的问题", "最近作息怎么样", "过段时间会不会好"] },
+    { id: 9, title: "团队里有人明显掉队，你首先想到：", opts: ["遇到困难了", "哪个环节出问题了", "怎么补救", "为什么别人没问题"] },
+    { id: 10, title: "你最喜欢哪种朋友：", opts: ["能理解我感受的人", "能给建议的人", "不会干涉我的人", "做事靠谱的人"] },
+    { id: 11, title: "别人突然情绪爆发，你更关注：", opts: ["他经历了什么", "为什么会这样", "怎么处理", "是否影响别人"] },
+    { id: 12, title: "有人说最近在调整自己，你第一感觉：", opts: ["挺不容易", "挺正常", "人人都在调整", "不知道具体是什么意思"] },
+    { id: 13, title: "当别人和你倾诉时，你更常做的是：", opts: ["听", "提问", "提建议", "分享类似经历"] },
+    { id: 14, title: "你更认同哪句话：", opts: ["每个人都有自己的难处", "理解问题比评价问题重要", "人最终还是要靠自己", "很多事其实没那么复杂"] },
+    { id: 15, title: "如果朋友情绪一直不好，你通常：", opts: ["持续关心", "偶尔问问", "尊重距离", "等他恢复"] },
+    { id: 16, title: "面对陌生人的异常行为，你更容易：", opts: ["先猜背后的原因", "观察情况", "保持距离", "直接下判断"] }
+  ];
+
+  const personalities = [
+    { id: "gardener", name: "共情园丁", emoji: "\uD83C\uDF3F", tagline: "每个人的表现背后，可能都有原因。", empathy: 95, listening: 92, support: 85, judgement: 8, stigmaRisk: 8, description: "你像园丁一样，细心照料他人的情绪，总能发现别人没说出口的感受。" },
+    { id: "treehole", name: "深夜树洞", emoji: "\u2615", tagline: "你说，我在听。", empathy: 90, listening: 98, support: 80, judgement: 10, stigmaRisk: 10, description: "你是别人愿意敞开心扉的对象，安静、可靠、擅长倾听。" },
+    { id: "detective", name: "线索侦探", emoji: "\uD83D\uDD0D", tagline: "先理解发生了什么。", empathy: 76, listening: 82, support: 72, judgement: 22, stigmaRisk: 22, description: "你习惯观察和分析行为背后的逻辑。" },
+    { id: "navigator", name: "问题导航员", emoji: "\uD83E\uDDED", tagline: "下一步怎么办更重要。", empathy: 68, listening: 60, support: 78, judgement: 28, stigmaRisk: 28, description: "你擅长找到方向和解决方案。" },
+    { id: "optimist", name: "乐观推进器", emoji: "\uD83C\uDF88", tagline: "事情总会慢慢变好。", empathy: 65, listening: 58, support: 70, judgement: 35, stigmaRisk: 35, description: "你擅长给人希望和力量。" },
+    { id: "guardian", name: "边界守卫", emoji: "\uD83D\uDEE1\uFE0F", tagline: "尊重别人，也尊重距离。", empathy: 60, listening: 55, support: 65, judgement: 38, stigmaRisk: 38, description: "你懂得保持适当边界。" },
+    { id: "executor", name: "现实执行派", emoji: "\u2699\uFE0F", tagline: "先把事情做好再说。", empathy: 45, listening: 42, support: 55, judgement: 63, stigmaRisk: 63, description: "你重视行动与效率。" },
+    { id: "survivor", name: "硬核生存家", emoji: "\uD83E\uDD96", tagline: "办法总比困难多。", empathy: 28, listening: 20, support: 40, judgement: 82, stigmaRisk: 82, description: "你崇尚坚强和独立。" }
+  ];
+
+  const dimNames = ["共情", "倾听", "支持", "污名风险指数"];
+  const dimColors = ["#f97316", "#3b82f6", "#10b981", "#ef4444"];
+
+  // ---- State ----
+  let step = 'home';
+  let curQ = 0;
+  let scores = [0, 0, 0, 0];
+  let selOpt = -1;
+  let resultPersonality = null;
+
+  // ---- Helpers ----
+  function uhtml(h) { root.innerHTML = h; }
+
+  function fadeIn(card) { requestAnimationFrame(function() { card.classList.add('fade-in'); }); }
+
+  function matchPersonality() {
+    var maxPerDim = questions.length;
+    var usr = [
+      Math.round(scores[0] / maxPerDim * 100),
+      Math.round(scores[1] / maxPerDim * 100),
+      Math.round(scores[2] / maxPerDim * 100),
+      Math.round(scores[3] / maxPerDim * 100)
+    ];
+    var best = null, bestDist = Infinity;
+    personalities.forEach(function(p) {
+      var d0 = usr[0] - p.empathy, d1 = usr[1] - p.listening;
+      var d2 = usr[2] - p.support, d3 = usr[3] - p.judgement;
+      var dist = Math.sqrt(d0*d0 + d1*d1 + d2*d2 + d3*d3);
+      if (dist < bestDist) { bestDist = dist; best = p; }
+    });
+    return { personality: best, scores: usr };
+  }
+
+  function drawRadar(canvasId, usr, p) {
+    var cv = document.getElementById(canvasId); if (!cv) return;
+    var ctx = cv.getContext('2d');
+    var cx = 140, cy = 140, r = 115, n = 4;
+    ctx.clearRect(0, 0, 280, 280);
+
+    // Background rings
+    for (var i = 1; i <= 5; i++) {
+      ctx.beginPath(); ctx.arc(cx, cy, r * i / 5, 0, Math.PI * 2);
+      ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 0.5; ctx.stroke();
+    }
+    // Axes
+    for (var i = 0; i < n; i++) {
+      var angle = -Math.PI / 2 + (Math.PI * 2 / n) * i;
+      ctx.beginPath(); ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + Math.cos(angle) * r, cy + Math.sin(angle) * r);
+      ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1; ctx.stroke();
+    }
+    // Labels
+    ctx.font = '11px -apple-system, sans-serif'; ctx.fillStyle = '#475569'; ctx.textAlign = 'center';
+    for (var i = 0; i < n; i++) {
+      var angle = -Math.PI / 2 + (Math.PI * 2 / n) * i;
+      var lx = cx + Math.cos(angle) * (r + 18), ly = cy + Math.sin(angle) * (r + 18);
+      ctx.fillText(dimNames[i], lx, ly + 4);
+    }
+    // Personality values
+    var pVals = [p.empathy, p.listening, p.support, p.judgement];
+    ctx.beginPath();
+    for (var i = 0; i < n; i++) {
+      var angle = -Math.PI / 2 + (Math.PI * 2 / n) * i;
+      var val = pVals[i] / 100 * r;
+      var px = cx + Math.cos(angle) * val, py = cy + Math.sin(angle) * val;
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.closePath(); ctx.fillStyle = 'rgba(37,99,235,0.15)'; ctx.fill();
+    ctx.strokeStyle = '#2563eb'; ctx.lineWidth = 2; ctx.stroke();
+    // User values
+    ctx.beginPath();
+    for (var i = 0; i < n; i++) {
+      var angle = -Math.PI / 2 + (Math.PI * 2 / n) * i;
+      var val = usr[i] / 100 * r;
+      var px = cx + Math.cos(angle) * val, py = cy + Math.sin(angle) * val;
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.closePath(); ctx.fillStyle = 'rgba(249,115,22,0.2)'; ctx.fill();
+    ctx.strokeStyle = '#f97316'; ctx.lineWidth = 2; ctx.stroke();
+    // Legend
+    ctx.font = '11px -apple-system, sans-serif';
+    ctx.fillStyle = '#2563eb'; ctx.textAlign = 'left';
+    ctx.fillRect(10, 250, 10, 10); ctx.fillText('人格基准', 24, 259);
+    ctx.fillStyle = '#f97316';
+    ctx.fillRect(80, 250, 10, 10); ctx.fillText('你的指数', 94, 259);
+  }
+
+  // ---- Step: Home ----
+  function renderHome() {
+    step = 'home';
+    uhtml('<div class="eut-card fade-in" style="padding:48px 28px;">' +
+      '<div style="font-size:3.5rem;margin-bottom:16px;">\uD83E\uDD14</div>' +
+      '<h3 style="font-size:1.5rem;font-weight:800;margin-bottom:8px;color:var(--text-primary);">你属于哪种情绪理解者？</h3>' +
+      '<p style="color:var(--text-secondary);margin-bottom:32px;line-height:1.7;">每个人对待情绪的方式都不一样。<br>16 道场景题，探索你的共情类型。</p>' +
+      '<button class="eut-btn" onclick="window._eut_next()">开始测试</button>' +
+      '</div>');
+    root.querySelector('.eut-card') && fadeIn(root.querySelector('.eut-card'));
+  }
+
+  // ---- Step: Intro ----
+  function renderIntro() {
+    step = 'intro';
+    uhtml('<div class="eut-card fade-in">' +
+      '<div style="font-size:2rem;margin-bottom:12px;">\uD83D\uDCDD</div>' +
+      '<p style="color:var(--text-secondary);line-height:1.8;margin-bottom:24px;">本测试共 <strong>16 道场景选择题</strong>，每题 4 个选项。<br>我们将从<strong>共情、倾听、支持、污名风险</strong>四个维度为你绘制一份独特的情绪理解画像。</p>' +
+      '<button class="eut-btn" onclick="window._eut_next()">准备好了</button>' +
+      '</div>');
+    fadeIn(root.querySelector('.eut-card'));
+  }
+
+  // ---- Step: Quiz ----
+  function renderQuestion() {
+    step = 'quiz';
+    if (curQ >= questions.length) { showResult(); return; }
+    var q = questions[curQ];
+    selOpt = -1;
+    var pct = Math.round(curQ / questions.length * 100);
+    var h = '<div class="eut-card fade-in">';
+    h += '<div class="eut-progress-wrap"><span class="eut-progress-num">' + (curQ + 1) + ' / 16</span><div class="eut-progress-bar"><div class="eut-progress-fill" style="width:' + pct + '%;"></div></div></div>';
+    h += '<p style="font-size:1.1rem;font-weight:600;color:var(--text-primary);line-height:1.6;margin-bottom:20px;">' + q.title + '</p>';
+    h += '<div class="eut-opt-grid">';
+    q.opts.forEach(function(o, i) {
+      h += '<button class="eut-option" data-oi="' + i + '">' + o + '</button>';
+    });
+    h += '</div></div>';
+    uhtml(h);
+    fadeIn(root.querySelector('.eut-card'));
+
+    root.querySelectorAll('.eut-option').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        selOpt = parseInt(this.getAttribute('data-oi'), 10);
+        scores[selOpt]++; // 0→Empathy, 1→Listening, 2→Support, 3→Judgement
+        root.querySelectorAll('.eut-option').forEach(function(b) { b.classList.remove('selected'); });
+        this.classList.add('selected');
+        var card = root.querySelector('.eut-card');
+        card.classList.add('fade-out');
+        setTimeout(function() { curQ++; renderQuestion(); }, 300);
+      });
+    });
+  }
+
+  // ---- Step: Result ----
+  function showResult() {
+    step = 'result';
+    var res = matchPersonality();
+    var p = res.personality;
+    resultPersonality = res;
+    var usr = res.scores;
+    uhtml('<div class="eut-card fade-in">' +
+      '<div style="font-size:4rem;margin-bottom:8px;">' + p.emoji + '</div>' +
+      '<h2 style="font-size:1.6rem;font-weight:800;color:var(--accent);margin-bottom:4px;">' + p.name + '</h2>' +
+      '<p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:16px;">' + p.tagline + '</p>' +
+      '<p style="color:var(--text-secondary);line-height:1.8;margin-bottom:20px;font-size:0.95rem;">' + p.description + '</p>' +
+      '<div class="eut-radar-wrap"><canvas id="eut-radar" width="280" height="280"></canvas></div>' +
+      '<div class="eut-dim-bars">' +
+        dimNames.map(function(dn, di) {
+          return '<div class="eut-dim-row"><div class="eut-dim-row-label"><span>' + dn + '</span><span>' + usr[di] + '%</span></div><div class="eut-dim-track"><div class="eut-dim-fill" style="width:' + usr[di] + '%;background:' + dimColors[di] + ';"></div></div></div>';
+        }).join('') +
+      '</div>' +
+      '<div style="margin-top:28px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">' +
+        '<button class="eut-btn eut-btn-secondary" onclick="window._eut_restart()">重新测试</button>' +
+        '<button class="eut-btn" onclick="window._eut_share()">分享结果</button>' +
+      '</div>' +
+      '</div>');
+    fadeIn(root.querySelector('.eut-card'));
+    setTimeout(function() { drawRadar('eut-radar', usr, p); }, 200);
+  }
+
+  // ---- Step: Share ----
+  function renderShare() {
+    step = 'share';
+    var res = resultPersonality || matchPersonality();
+    var p = res.personality;
+    var usr = res.scores;
+    uhtml('<div class="eut-card fade-in">' +
+      '<div class="eut-share-card" id="eut-share-card">' +
+        '<div class="share-emoji">' + p.emoji + '</div>' +
+        '<div class="share-name">' + p.name + '</div>' +
+        '<div class="share-tagline">' + p.tagline + '</div>' +
+        '<div class="share-dims">' +
+          dimNames.map(function(dn, di) {
+            return '<div class="share-dim"><div class="share-dim-val">' + usr[di] + '%</div><div class="share-dim-label">' + dn + '</div></div>';
+          }).join('') +
+        '</div>' +
+        '<div class="share-footer">你是哪一种情绪理解者？</div>' +
+      '</div>' +
+      '<div style="margin-top:24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">' +
+        '<button class="eut-btn eut-btn-secondary" onclick="window._eut_restart()">重新测试</button>' +
+        '<button class="eut-btn" onclick="window._eut_back_result()">返回结果</button>' +
+      '</div>' +
+      '</div>');
+    fadeIn(root.querySelector('.eut-card'));
+  }
+
+  // ---- Navigation ----
+  function next() {
+    if (step === 'home') renderIntro();
+    else if (step === 'intro') { curQ = 0; scores = [0, 0, 0, 0]; renderQuestion(); }
+  }
+
+  window._eut_next = next;
+  window._eut_restart = function() { curQ = 0; scores = [0, 0, 0, 0]; resultPersonality = null; renderHome(); };
+  window._eut_share = renderShare;
+  window._eut_back_result = function() { step = 'result'; showResult(); };
+
+  // ---- Init ----
+  renderHome();
+})();
+
+/* ============ Poll System ============ */
+(function() {
+  const qs = [{q:'你觉得哪个词最伤人？',o:['玉玉症','emo','矫情','玻璃心','精神内耗'],k:'pq0'},{q:'你或身边的人是否因这些词不敢表达真实情绪？',o:['是，经常','偶尔有过','不确定/没注意'],k:'pq1'}];
+  let ci=0;
+  function lr(k){try{const r=localStorage.getItem('as_'+k);return r?JSON.parse(r):{};}catch(e){return{};}}
+  function gt(r){return Object.values(r).reduce(function(s,v){return s+v;},0);}
+  function mv(k){try{var r=localStorage.getItem('as_v_'+k);return r!==null?parseInt(r,10):null;}catch(e){return null;}}
+  function sm(k,i){try{localStorage.setItem('as_v_'+k,i);}catch(e){}}
+
+  // Returns {accepted, uniqueSessions} — accepted=false means dedup intercepted
+  async function sv(k,i){
+    var accepted=true, uniqueSessions=0;
+    if(dbReady){
+      try{
+        var ex=await supabase.from('poll_votes').select('*',{count:'exact',head:true}).eq('poll_id',k).eq('session_id',dbSessionId);
+        if((ex.count||0)===0){
+          supabase.from('poll_votes').insert({poll_id:k,option_index:i,session_id:dbSessionId}).then(function(){}).catch(function(){});
+          var lr2=lr(k); lr2[i]=(lr2[i]||0)+1;
+          try{localStorage.setItem('as_'+k,JSON.stringify(lr2));}catch(e){}
+        }else{accepted=false;}
+      }catch(e){
+        var lr2=lr(k); lr2[i]=(lr2[i]||0)+1;
+        try{localStorage.setItem('as_'+k,JSON.stringify(lr2));}catch(e2){}
+      }
+      try{
+        var av=await supabase.from('poll_votes').select('session_id').eq('poll_id',k);
+        if(av.data){
+          var ss=new Set(); av.data.forEach(function(v){ss.add(v.session_id);});
+          uniqueSessions=ss.size;
+        }
+      }catch(e){}
+    }else{
+      var lr2=lr(k); lr2[i]=(lr2[i]||0)+1;
+      try{localStorage.setItem('as_'+k,JSON.stringify(lr2));}catch(e){}
+    }
+    return {accepted:accepted, uniqueSessions:uniqueSessions};
+  }
+
+  function buildPollHTML(q,res,t,my,sessCount){
+    var h='<div class="poll-question">'+q.q+'</div><div class="poll-options">';
+    q.o.forEach(function(o,j){
+      var c=res[j]||0, p=t>0?Math.round(c/t*100):0;
+      h+='<div class="poll-option'+(my===j?' voted':'')+'" data-o="'+j+'"><div class="poll-option-bar" style="width:'+(my!==null?p:0)+'%"></div><span class="poll-option-text">'+o+'</span><span class="poll-option-pct">'+(my!==null?p+'%':'')+'</span></div>';
+    });
+    var dc=sessCount>0?sessCount:t;
+    h+='</div><div class="poll-total">共 <strong>'+dc+'</strong> 人参与</div>';
+    return h;
+  }
+
+  async function rp(i){
+    ci=i; window.poll_ci=i; var q=qs[i];
+    // Fast first paint from localStorage
+    var localRes=lr(q.k), localT=gt(localRes);
+    document.getElementById('poll-body').innerHTML=buildPollHTML(q,localRes,localT,mv(q.k),0);
+
+    // Then refresh from Supabase
+    var res=localRes, t=localT, sessCount=0;
+    if(dbReady){
+      try{
+        var cres=await supabase.from('poll_votes').select('*').eq('poll_id',q.k);
+        var cr={}, ss=new Set();
+        (cres.data||[]).forEach(function(v){
+          cr[v.option_index]=(cr[v.option_index]||0)+1;
+          ss.add(v.session_id);
+        });
+        res=cr; t=gt(res); sessCount=ss.size;
+      }catch(e){}
+    }
+    var my=mv(q.k);
+    document.getElementById('poll-body').innerHTML=buildPollHTML(q,res,t,my,sessCount);
+
+      document.querySelectorAll('.poll-option').forEach(function(o){
+        o.addEventListener('click',async function(){
+          var j=parseInt(o.getAttribute('data-o'),10);
+          var my=mv(q.k);
+          if(my!==null){
+            // already voted — show Toast and return
+            var ttoast=document.getElementById('pledge-toast');
+            var tovl=document.getElementById('toast-overlay');
+            if(ttoast&&tovl){
+              ttoast.querySelector('h3').textContent='你已经投过票了';
+              ttoast.querySelector('p').textContent='你在当前设备上已经参与过这项投票，无需重复提交。';
+              ttoast.classList.add('show'); tovl.classList.add('show');
+              setTimeout(function(){ttoast.classList.remove('show');tovl.classList.remove('show');},2500);
+            }
+            return;
+          }
+          try{
+            var result=await sv(q.k,j);
+            if(result.accepted||!dbReady){
+              sm(q.k,j);
+            }else{
+              // Show Toast when Supabase dedup intercepts
+              var ttoast=document.getElementById('pledge-toast');
+              var tovl=document.getElementById('toast-overlay');
+              if(ttoast&&tovl){
+                ttoast.querySelector('h3').textContent='你已经投过票了';
+                ttoast.querySelector('p').textContent='你在当前设备上已经参与过这项投票，无需重复提交。';
+                ttoast.classList.add('show'); tovl.classList.add('show');
+                setTimeout(function(){ttoast.classList.remove('show');tovl.classList.remove('show');},2500);
+              }
+            }
+          }catch(e2){
+            // sv() rejected unexpectedly — show error Toast
+            var ttoast=document.getElementById('pledge-toast');
+            var tovl=document.getElementById('toast-overlay');
+            if(ttoast&&tovl){
+              ttoast.querySelector('h3').textContent='操作失败';
+              ttoast.querySelector('p').textContent='网络异常，请稍后重试。';
+              ttoast.classList.add('show'); tovl.classList.add('show');
+              setTimeout(function(){ttoast.classList.remove('show');tovl.classList.remove('show');},2500);
+            }
+          }
+          rp(ci);
+          if(dbReady&&window.refreshGlobalStats)window.refreshGlobalStats();
+        });
+      });
+  }
+
+  // Expose for debugging
+  window.poll_rp=rp; window.poll_sv=sv; window.poll_mv=mv; window.poll_ci=ci;
+
+  document.getElementById('poll-tabs').addEventListener('click',function(e){
+    var t=e.target.closest('.poll-tab'); if(!t)return;
+    document.querySelectorAll('.poll-tab').forEach(function(x){x.classList.remove('active');});
+    t.classList.add('active'); rp(parseInt(t.getAttribute('data-index'),10));
+  });
+  rp(0);
+})();
+
+/* ============ Pledge System ============ */
+(function() {
+  function gc(){try{var v=localStorage.getItem('as_pledge');return v?parseInt(v,10):0;}catch(e){return 0;}}
+  async function getDBTotal(){if(dbReady){try{var pc=await supabase.from('pledges').select('*',{count:'exact',head:true});return pc.count||0;}catch(e){}}return-1;}
+  // Returns {accepted} — accepted=false means dedup intercepted
+  async function ip(){
+    var accepted=true;
+    if(dbReady){
+      try{
+        var ex=await supabase.from('pledges').select('*',{count:'exact',head:true}).eq('session_id',dbSessionId);
+        if((ex.count||0)===0){
+          await supabase.from('pledges').insert({content:'',session_id:dbSessionId});
+        }else{accepted=false;}
+      }catch(e){}
+    }
+    // Always bump localStorage as offline fallback
+    var c=gc()+1;
+    try{localStorage.setItem('as_pledge',c);}catch(e){}
+    return {accepted:accepted};
+  }
+  function hp(){try{return localStorage.getItem('as_pledged')==='1';}catch(e){return false;}}
+  function sp(){try{localStorage.setItem('as_pledged','1');}catch(e){}}
+
+  var ce=document.getElementById('pledge-count');
+  // Update BOTH counters from Supabase: action area + global explorer
+  async function refreshPledgeCount(){
+    var total=await getDBTotal();
+    var val=total>=0?total:gc();
+    ce.textContent=val;
+    var ge=document.getElementById('cb_pledge_total');
+    if(ge&&total>=0)ge.textContent=val;
+    if(total>=0)try{localStorage.setItem('as_pledge',''+total);}catch(e){}
+    if(!window._pcTimer){window._pcTimer=setInterval(refreshPledgeCount,15000);}
+  }
+  refreshPledgeCount();
+
+  var btn=document.getElementById('pledge-btn'),toast=document.getElementById('pledge-toast'),ovl=document.getElementById('toast-overlay');
+  // Init button state: check localStorage first, then Supabase
+  if(hp()){
+    btn.textContent='已签署承诺'; btn.style.opacity='0.6'; btn.style.pointerEvents='none';
+  }else{
+    (async function(){
+      try{var ex=await supabase.from('pledges').select('*',{count:'exact',head:true}).eq('session_id',dbSessionId);
+        if((ex.count||0)>0){sp(); btn.textContent='已签署承诺'; btn.style.opacity='0.6'; btn.style.pointerEvents='none';}
+      }catch(e){}
+    })();
+  }
+
+  btn.addEventListener('click',async function(){
+    if(hp()){
+      toast.querySelector('h3').textContent='您已签署过承诺';
+      toast.querySelector('p').textContent='你已经在承诺墙上留下过名字，无需重复签署。';
+      toast.classList.add('show'); ovl.classList.add('show');
+      setTimeout(function(){toast.classList.remove('show');ovl.classList.remove('show');},2500);
+      return;
+    }
+    var result=await ip();
+    sp(); btn.textContent='已签署承诺'; btn.style.opacity='0.6'; btn.style.pointerEvents='none';
+    if(result.accepted){
+      var cur=parseInt(ce.textContent,10)||0; ce.textContent=cur+1;
+      var ge=document.getElementById('cb_pledge_total');
+      if(ge){var gc=parseInt(ge.textContent,10)||0; ge.textContent=gc+1;}
+      refreshPledgeCount();
+      if(dbReady&&window.refreshGlobalStats)window.refreshGlobalStats();
+    }
+    if(result.accepted||!dbReady){
+      toast.querySelector('h3').textContent='感谢你的承诺';
+      toast.querySelector('p').textContent='你的每一份觉察与行动，都在让这个世界变得更好。';
+    }else{
+      toast.querySelector('h3').textContent='您已签署过承诺';
+      toast.querySelector('p').textContent='您之前已在承诺墙留下过名字，无需重复签署。';
+    }
+    toast.classList.add('show'); ovl.classList.add('show');
+    setTimeout(function(){toast.classList.remove('show');ovl.classList.remove('show');},2500);
+  });
+
+  ovl.addEventListener('click',function(){toast.classList.remove('show');ovl.classList.remove('show');});
+})();
+
+/* ============ Manifesto Generator ============ */
+(function() {
+  const tpls=['我承诺，不再用_____来衡量别人的痛苦。','从今天起，我用"你还好吗"代替"别矫情了"。','语言可以伤人，也可以治愈——我选择后者。'];
+  function gc(){try{const v=localStorage.getItem('as_mfc');return v?parseInt(v,10):0;}catch(e){return 0;}}
+  function ic(){const c=gc()+1;try{localStorage.setItem('as_mfc',c);}catch(e){}if(dbReady){supabase.from('declarations').insert({session_id:dbSessionId,template:document.getElementById('mf-template').value}).then(function(){}).catch(function(){})}return c;}
+  (async function(){if(dbReady){try{const dc=await supabase.from('declarations').select('*',{count:'exact',head:true});if((dc.count||0)>0){document.getElementById('mf-count').textContent=dc.count;localStorage.setItem('as_mfc',''+dc.count);return;}}catch(e){}}document.getElementById('mf-count').textContent=gc();})();
+  document.getElementById('mf-gen-btn').addEventListener('click',()=>{
+    const name=document.getElementById('mf-name').value.trim()||'匿名',ti=parseInt(document.getElementById('mf-template').value),text=tpls[ti];
+    const cv=document.getElementById('manifesto-canvas'),ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+    ctx.fillStyle='#ffffff';ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle='#2563eb';ctx.lineWidth=6;ctx.strokeRect(12,12,W-24,H-24);
+    ctx.strokeStyle='#93c5fd';ctx.lineWidth=1.5;ctx.setLineDash([8,4]);ctx.strokeRect(28,28,W-56,H-56);ctx.setLineDash([]);
+    ctx.fillStyle='#2563eb';ctx.font='bold 48px Georgia,serif';ctx.textAlign='left';ctx.fillText('\u201C',50,90);
+    ctx.fillStyle='#1e293b';ctx.font='bold 22px "PingFang SC","Hiragino Sans GB",-apple-system,sans-serif';ctx.textAlign='center';
+    const lines=wrapText(ctx,text,W-140);lines.forEach((l,i)=>ctx.fillText(l,W/2,110+i*36));
+    const bY=110+lines.length*36;ctx.fillStyle='#2563eb';ctx.font='bold 48px Georgia,serif';ctx.textAlign='right';ctx.fillText('\u201D',W-50,bY+20);
+    const now=new Date(),ds=`${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
+    ctx.fillStyle='#475569';ctx.font='16px "PingFang SC","Hiragino Sans GB",-apple-system,sans-serif';ctx.textAlign='right';ctx.fillText('— '+name,W-60,bY+60);ctx.fillText(ds,W-60,bY+84);
+    ctx.fillStyle='#2563eb';ctx.font='11px -apple-system,sans-serif';ctx.textAlign='center';ctx.fillText('# 屏幕内外的精神健康 #',W/2,H-38);
+    document.getElementById('mf-count').textContent=ic();document.getElementById('mf-result').classList.add('show');if(dbReady&&window.refreshGlobalStats)window.refreshGlobalStats();
+  });
+  function wrapText(ctx,text,mw){const w=text.split(''),l=[];let ln='';for(let i=0;i<w.length;i++){const t=ln+w[i];if(ctx.measureText(t).width>mw&&ln.length>0){l.push(ln);ln=w[i];}else ln=t;}l.push(ln);return l;}
+})();
+
+/* ============ Promise Wall ============ */
+(function() {
+  var tc=['#2563eb','#3b82f6','#8b5cf6','#f97316','#10b981','#ec4899','#14b8a6'],ra=[-3,-2,-1,0,1,2,3,-2.5,1.5,-1.5];
+  // Always fetch from Supabase first; localStorage is offline fallback only
+  async function gp(){
+    if(dbReady){
+      try{
+        var res=await supabase.from('promise_wall').select('*').order('created_at',{ascending:false}).limit(200);
+        if(res.data&&res.data.length>0){
+          var a=res.data.map(function(d){return{content:d.content,timestamp:new Date(d.created_at).getTime()};});
+          try{localStorage.setItem('as_promises',JSON.stringify(a));}catch(e){}
+          return a;
+        }
+      }catch(e){}
+    }
+    try{var v=localStorage.getItem('as_promises');return v?JSON.parse(v):[];}catch(e){return[];}
+  }
+  function sp(a){try{localStorage.setItem('as_promises',JSON.stringify(a));}catch(e){}}
+  async function rw(){
+    var w=document.getElementById('promise-wall'),ps=await gp();
+    if(ps.length===0){w.innerHTML='<div class="promise-empty">还没有人留下承诺，来做第一个吧</div>';return;}
+    var r=ps.slice(-10).reverse(); w.innerHTML='';
+    r.forEach(function(p,i){
+      var n=document.createElement('div'); n.className='promise-note';
+      n.style.transform='rotate('+ra[i%ra.length]+'deg)'; n.style.borderTopColor=tc[i%tc.length];
+      var ct=p.content||p.text,tsVal=p.timestamp||p.time;
+      var t=new Date(tsVal),ts=(t.getMonth()+1)+'/'+t.getDate()+' '+String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');
+      n.innerHTML='<div class="pn-text">'+eh(ct)+'</div><div class="pn-meta"><span>'+ts+'</span><span class="pn-tag" style="background:'+tc[i%tc.length]+'">承诺</span></div>';
+      w.appendChild(n);
+    });
+  }
+  function eh(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+  // Initial render: Supabase first, localStorage fallback (Bug E: no one-time cache)
+  rw();
+  window.promiseWall_rw = rw;
+
+  var ovl=document.getElementById('promise-modal-overlay'),inp=document.getElementById('pm-input');
+  document.getElementById('promise-add-btn').addEventListener('click',function(){ovl.classList.add('show');inp.focus();});
+  document.getElementById('pm-cancel').addEventListener('click',function(){ovl.classList.remove('show');inp.value='';});
+  ovl.addEventListener('click',function(e){if(e.target===ovl){ovl.classList.remove('show');inp.value='';}});
+  document.getElementById('pm-submit').addEventListener('click',async function(){
+    var tx=inp.value.trim(); if(!tx)return;
+    var now=Date.now();
+    // Write to Supabase (fire-and-forget)
+    if(dbReady){
+      supabase.from('promise_wall').insert({session_id:dbSessionId,content:tx}).then(function(){}).catch(function(){});
+    }
+    // Immediately append to localStorage for instant display
+    try{
+      var localPs=localStorage.getItem('as_promises');
+      localPs=localPs?JSON.parse(localPs):[];
+      localPs.push({content:tx,timestamp:now});
+      localStorage.setItem('as_promises',JSON.stringify(localPs));
+    }catch(e){}
+    ovl.classList.remove('show'); inp.value='';
+    // Show instantly from localStorage, then background-refresh from Supabase
+    rw();
+    setTimeout(function(){rw();},800);
+  });
+})();
+
+/* ============ Global Stats Panel ============ */
+(function() {
+  var pollOpts = [['玉玉症','emo','矫情','玻璃心','精神内耗'],['是，经常','偶尔有过','不确定/没注意']];
+  var pollIds = ['pq0','pq1'];
+
+  async function refreshGlobalStats() {
+    if (!dbReady) {
+      document.getElementById('cb_gs_sync_note').textContent = '数据库连接中...';
+      return;
+    }
+    try {
+      var pc = await supabase.from('pledges').select('*',{count:'exact',head:true});
+      document.getElementById('cb_pledge_total').textContent = pc.count || 0;
+
+      var dc = await supabase.from('declarations').select('*',{count:'exact',head:true});
+      document.getElementById('cb_decl_total').textContent = dc.count || 0;
+
+      if (pc.count > 0) localStorage.setItem('as_pledge', '' + pc.count);
+      if (dc.count > 0) localStorage.setItem('as_mfc', '' + dc.count);
+
+      var p0 = await supabase.from('poll_votes').select('*').eq('poll_id', pollIds[0]);
+      var r0 = {}; (p0.data||[]).forEach(function(v) { r0[v.option_index] = (r0[v.option_index] || 0) + 1; });
+      var t0 = 0; Object.values(r0).forEach(function(x) { t0 += x; });
+      var h0 = '';
+      pollOpts[0].forEach(function(o, j) {
+        var c = r0[j] || 0, p = t0 > 0 ? Math.round(c / t0 * 100) : 0;
+        h0 += '<div class="cb_gs-poll-row"><span class="cb_gs_opt" title="' + o + '">' + o + '</span><div class="cb_gs_track"><div class="cb_gs_fill" style="width:' + p + '%"></div></div><span class="cb_gs_pct">' + p + '%</span></div>';
+      });
+      document.getElementById('cb_gs_poll0').innerHTML = h0 || '<div class="cb_gs-no-data">暂无数据</div>';
+
+      var p1 = await supabase.from('poll_votes').select('*').eq('poll_id', pollIds[1]);
+      var r1 = {}; (p1.data||[]).forEach(function(v) { r1[v.option_index] = (r1[v.option_index] || 0) + 1; });
+      var t1 = 0; Object.values(r1).forEach(function(x) { t1 += x; });
+      var h1 = '';
+      pollOpts[1].forEach(function(o, j) {
+        var c = r1[j] || 0, p = t1 > 0 ? Math.round(c / t1 * 100) : 0;
+        h1 += '<div class="cb_gs-poll-row"><span class="cb_gs_opt" title="' + o + '">' + o + '</span><div class="cb_gs_track"><div class="cb_gs_fill" style="width:' + p + '%"></div></div><span class="cb_gs_pct">' + p + '%</span></div>';
+      });
+      document.getElementById('cb_gs_poll1').innerHTML = h1 || '<div class="cb_gs-no-data">暂无数据</div>';
+
+      var pw = await supabase.from('promise_wall').select('*').order('created_at',{ascending:false}).limit(3);
+      var pwWrap = document.getElementById('cb_gs_promises_wrap');
+      var pwEl = document.getElementById('cb_gs_promises');
+      if (pw.data && pw.data.length > 0) {
+        pwWrap.style.display = 'block';
+        var ph = '';
+        pw.data.forEach(function(p) {
+          var t = new Date(p.created_at);
+          var ts = (t.getMonth() + 1) + '/' + t.getDate() + ' ' + String(t.getHours()).padStart(2, '0') + ':' + String(t.getMinutes()).padStart(2, '0');
+          ph += '<div class="cb_gs-promise-item"><span class="cb_gs_ptext">' + p.content.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span><span class="cb_gs_ptime">' + ts + '</span></div>';
+        });
+        pwEl.innerHTML = ph;
+      } else {
+        pwWrap.style.display = 'none';
+      }
+
+      document.getElementById('cb_gs_sync_note').textContent = '数据由 Supabase 云端同步';
+    } catch (e) {
+      document.getElementById('cb_gs_sync_note').textContent = '云端同步暂不可用，显示本地数据';
+    }
+  }
+
+  window.refreshGlobalStats = refreshGlobalStats;
+  // Trigger initial render of polls and promise wall after global stats
+  (async function(){
+    await refreshGlobalStats();
+    if (window.promiseWall_rw) window.promiseWall_rw();
+    if (window.poll_rp) window.poll_rp(window.poll_ci || 0);
+    setTimeout(function(){refreshGlobalStats();},2000);
+    setInterval(refreshGlobalStats,15000);
+  })();
+})();
+</script>
+</body>
+</html>
