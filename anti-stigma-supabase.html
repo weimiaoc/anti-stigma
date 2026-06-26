@@ -1580,7 +1580,7 @@ if (!dbSessionId) {
 (function() {
   const tpls=['我承诺，不再用_____来衡量别人的痛苦。','从今天起，我用"你还好吗"代替"别矫情了"。','语言可以伤人，也可以治愈——我选择后者。'];
   function gc(){try{const v=localStorage.getItem('as_mfc');return v?parseInt(v,10):0;}catch(e){return 0;}}
-  async function ic(){const c=gc()+1;try{localStorage.setItem('as_mfc',c);}catch(e){}if(dbReady){try{var ir=await supabase.from('declarations').insert({session_id:dbSessionId,template:document.getElementById('mf-template').value});if(ir.error){console.error('declarations insert error:',ir.error);}}catch(e){console.error('declarations insert exception:',e);}}return c;}
+  async function ic(){const c=gc()+1;try{localStorage.setItem('as_mfc',c);}catch(e){}if(dbReady){try{var ti=parseInt(document.getElementById('mf-template').value);var ir=await supabase.from('declarations').insert({content:tpls[ti],session_id:dbSessionId,template:ti});if(ir.error){console.error('declarations insert error:',ir.error);}}catch(e){console.error('declarations insert exception:',e);}}return c;}
   (async function(){if(dbReady){try{const dc=await supabase.from('declarations').select('*',{count:'exact',head:true});if(dc.error){document.getElementById('mf-count').textContent=gc();return;}if((dc.count||0)>0){document.getElementById('mf-count').textContent=dc.count;localStorage.setItem('as_mfc',''+dc.count);return;}}catch(e){}}document.getElementById('mf-count').textContent=gc();})();
   document.getElementById('mf-gen-btn').addEventListener('click',async ()=>{
     const name=document.getElementById('mf-name').value.trim()||'匿名',ti=parseInt(document.getElementById('mf-template').value),text=tpls[ti];
