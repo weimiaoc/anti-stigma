@@ -1379,7 +1379,8 @@ if (!dbSessionId) {
     if(dbReady){
       try{
         var ex=await supabase.from('poll_votes').select('*',{count:'exact',head:true}).eq('poll_id',k).eq('session_id',dbSessionId);
-        if((ex.count||0)===0){
+        if(ex.error){accepted=true; supabase.from('poll_votes').insert({poll_id:k,option_index:i,session_id:dbSessionId}).then(function(){}).catch(function(){}); var lr2=lr(k); lr2[i]=(lr2[i]||0)+1; try{localStorage.setItem('as_'+k,JSON.stringify(lr2));}catch(e){}}
+        else if((ex.count||0)===0){
           supabase.from('poll_votes').insert({poll_id:k,option_index:i,session_id:dbSessionId}).then(function(){}).catch(function(){});
           var lr2=lr(k); lr2[i]=(lr2[i]||0)+1;
           try{localStorage.setItem('as_'+k,JSON.stringify(lr2));}catch(e){}
@@ -1497,14 +1498,15 @@ if (!dbSessionId) {
 /* ============ Pledge System ============ */
 (function() {
   function gc(){try{var v=localStorage.getItem('as_pledge');return v?parseInt(v,10):0;}catch(e){return 0;}}
-  async function getDBTotal(){if(dbReady){try{var pc=await supabase.from('pledges').select('*',{count:'exact',head:true});return pc.count||0;}catch(e){}}return-1;}
+  async function getDBTotal(){if(dbReady){try{var pc=await supabase.from('pledges').select('*',{count:'exact',head:true});if(pc.error)return-1;return pc.count||0;}catch(e){}}return-1;}
   // Returns {accepted} — accepted=false means dedup intercepted
   async function ip(){
     var accepted=true;
     if(dbReady){
       try{
         var ex=await supabase.from('pledges').select('*',{count:'exact',head:true}).eq('session_id',dbSessionId);
-        if((ex.count||0)===0){
+        if(ex.error){accepted=true; await supabase.from('pledges').insert({content:'',session_id:dbSessionId});}
+        else if((ex.count||0)===0){
           await supabase.from('pledges').insert({content:'',session_id:dbSessionId});
         }else{accepted=false;}
       }catch(e){}
@@ -1537,6 +1539,7 @@ if (!dbSessionId) {
   }else{
     (async function(){
       try{var ex=await supabase.from('pledges').select('*',{count:'exact',head:true}).eq('session_id',dbSessionId);
+        if(ex.error)return;
         if((ex.count||0)>0){sp(); btn.textContent='已签署承诺'; btn.style.opacity='0.6'; btn.style.pointerEvents='none';}
       }catch(e){}
     })();
@@ -1578,7 +1581,7 @@ if (!dbSessionId) {
   const tpls=['我承诺，不再用_____来衡量别人的痛苦。','从今天起，我用"你还好吗"代替"别矫情了"。','语言可以伤人，也可以治愈——我选择后者。'];
   function gc(){try{const v=localStorage.getItem('as_mfc');return v?parseInt(v,10):0;}catch(e){return 0;}}
   function ic(){const c=gc()+1;try{localStorage.setItem('as_mfc',c);}catch(e){}if(dbReady){supabase.from('declarations').insert({session_id:dbSessionId,template:document.getElementById('mf-template').value}).then(function(){}).catch(function(){})}return c;}
-  (async function(){if(dbReady){try{const dc=await supabase.from('declarations').select('*',{count:'exact',head:true});if((dc.count||0)>0){document.getElementById('mf-count').textContent=dc.count;localStorage.setItem('as_mfc',''+dc.count);return;}}catch(e){}}document.getElementById('mf-count').textContent=gc();})();
+  (async function(){if(dbReady){try{const dc=await supabase.from('declarations').select('*',{count:'exact',head:true});if(dc.error){document.getElementById('mf-count').textContent=gc();return;}if((dc.count||0)>0){document.getElementById('mf-count').textContent=dc.count;localStorage.setItem('as_mfc',''+dc.count);return;}}catch(e){}}document.getElementById('mf-count').textContent=gc();})();
   document.getElementById('mf-gen-btn').addEventListener('click',()=>{
     const name=document.getElementById('mf-name').value.trim()||'匿名',ti=parseInt(document.getElementById('mf-template').value),text=tpls[ti];
     const cv=document.getElementById('manifesto-canvas'),ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
@@ -1670,10 +1673,10 @@ if (!dbSessionId) {
     }
     try {
       var pc = await supabase.from('pledges').select('*',{count:'exact',head:true});
-      document.getElementById('cb_pledge_total').textContent = pc.count || 0;
+      document.getElementById('cb_pledge_total').textContent = pc.error?(function(){try{return parseInt(localStorage.getItem('as_pledge'),10)||0}catch(e){return 0}})():(pc.count||0);
 
       var dc = await supabase.from('declarations').select('*',{count:'exact',head:true});
-      document.getElementById('cb_decl_total').textContent = dc.count || 0;
+      document.getElementById('cb_decl_total').textContent = (dc.error?(function(){try{return parseInt(localStorage.getItem('as_mfc'),10)||0}catch(e){return 0}})():dc.count) || 0;
 
       if (pc.count > 0) localStorage.setItem('as_pledge', '' + pc.count);
       if (dc.count > 0) localStorage.setItem('as_mfc', '' + dc.count);
